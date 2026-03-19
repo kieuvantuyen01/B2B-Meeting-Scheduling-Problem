@@ -145,7 +145,7 @@ for input_file in input_files:
                 if content.startswith('{'):
                     first_set = content.lstrip('{').rstrip(',}')
                     numbers = [int(x.strip()) for x in first_set.split(',') if x.strip()]
-                    numbers = numbers[1:]  
+                    numbers = [n for n in numbers if n != 0]  # {0} means empty, keep nonzero
                     forbidden.append(numbers)
             elif line.startswith('{'):
                 should_break = False
@@ -158,7 +158,7 @@ for input_file in input_files:
                     i += 1
                     continue
                 numbers = [int(x.strip()) for x in numbers_str.split(',') if x.strip()]
-                numbers = numbers[1:]  
+                numbers = [n for n in numbers if n != 0]  # {0} means empty, keep nonzero
                 forbidden.append(numbers)
                 if should_break:
                     i += 1
@@ -476,9 +476,9 @@ for input_file in input_files:
                 cnf.append([-x[prec][t], sfx[t]])  # x[prec][t] => sfx[t]
                 cnf.append([-sfx[t + 1], sfx[t]])  # sfx[t + 1] => sfx[t]
                 cnf.append([x[prec][t], sfx[t + 1], -sfx[t]])  # not x[prec][t] and not sfx[t + 1] => not sfx[t]
-            # x[m][t] + sfx[t + 1] <= 1
-            for t in range(1, nTotalSlots):
-                cnf.append([-x[m][t], -sfx[t + 1]])
+            # Strict precedence: prec must be at slot < t (not at t or later)
+            for t in range(1, nTotalSlots + 1):
+                cnf.append([-x[m][t], -sfx[t]])
 
     # Add hard clauses 
     for clause in cnf.clauses:
